@@ -14,19 +14,6 @@ import org.apache.commons.io.filefilter.TrueFileFilter;
  * Utility class for operations with local files and directories.
  */
 public class SyncTools {
-	// todo, return back logging by returning a link of "deleted" or otherwise
-	// processed files
-
-	/**
-	 * Deletes and creates the destination directory.
-	 * 
-	 * @param destination
-	 * @throws IOException
-	 */
-	public static void ensureEmptyDestination(File destination) throws IOException {
-		FileUtils.deleteDirectory(destination);
-		FileUtils.forceMkdir(destination);
-	}
 
 	/**
 	 * Deletes files from "dst" if they are not in a "validFiles" list. <br/>

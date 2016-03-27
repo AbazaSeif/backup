@@ -2,6 +2,8 @@ package cz.jkosnar.backup.sync;
 
 import java.io.File;
 
+import org.apache.commons.io.FileUtils;
+
 /**
  * Sync: One purpose file-size-based synchronization tool. <br/>
  * Sync ignores timestamps rather using file size as the only parameter. If your
@@ -31,6 +33,10 @@ public class Sync {
 
 		source = new File(args[0]);
 		destination = new File(args[1]);
+
+		if (!destination.exists()) {
+			FileUtils.forceMkdir(destination);
+		}
 
 		SyncCreator s = new SyncCreator();
 		s.processSync(source, destination);

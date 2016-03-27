@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
+
 import cz.jkosnar.backup.sync.SyncTools;
 
 /**
@@ -27,19 +29,19 @@ public class ZipCreator {
 	 * @param archivePass
 	 * @throws Exception
 	 */
-	public void createZip(String sevenZipLocation, File source, File destination, boolean reuse, int zippingDepth, String archivePass) throws Exception {
+	public void createZip(String sevenZipLocation, File source, File destination, int zippingDepth, String archivePass, boolean reuse, String workingDir,
+			int compression) throws Exception {
 		long millisStart = System.currentTimeMillis();
 
 		System.out.println(
 				"Zipping started...\nSource: " + source.getAbsolutePath() + "\nDestination: " + destination.getAbsolutePath() + "\nDepth: " + zippingDepth);
 
-		// clean the destination directory, this is the only necessary thing -
-		// the zipping command stays the same
 		if (!reuse) {
-			SyncTools.ensureEmptyDestination(destination);
+			FileUtils.deleteDirectory(destination);
+			FileUtils.forceMkdir(destination);
 		}
 
-		List<File> zippingResults = zip(sevenZipLocation, source, destination, zippingDepth, archivePass);
+		List<File> zippingResults = zip(sevenZipLocation, source, destination, zippingDepth, archivePass, workingDir, compression);
 
 		if (reuse) {
 			SyncTools.deleteUnlistedFiles(zippingResults, destination);
@@ -66,7 +68,8 @@ public class ZipCreator {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<File> zip(String sevenZipLocation, File source, File destination, int zippingDepth, String archivePass) throws Exception {
+	public List<File> zip(String sevenZipLocation, File source, File destination, int zippingDepth, String archivePass, String workDir, int compression)
+			throws Exception {
 		List<File> zippingResults = new ArrayList<>();
 		toZip = new ArrayList<>();
 
@@ -75,14 +78,29 @@ public class ZipCreator {
 		int sourcePathLength = source.getAbsolutePath().length();
 		for (File f : toZip) {
 
-			System.out.println(f.getAbsolutePath());
-
 			String relativePath = f.getAbsolutePath().substring(sourcePathLength);
 			String srcFileRelativePath = source.getAbsolutePath() + relativePath;
 			String tmpFileRelativePath = destination.getAbsolutePath() + relativePath;
 
-			ProcessBuilder pb = new ProcessBuilder(sevenZipLocation, "u", "-mx0", "-mhe", "-uq0", "\"" + tmpFileRelativePath + ".7z\"",
-					"\"" + srcFileRelativePath + "\"", "-p" + archivePass, "-mmt");
+			List<String> processDefinition = new ArrayList<String>();
+			processDefinition.add(sevenZipLocation);
+			processDefinition.add("u"); // update mode
+			processDefinition.add("-mx" + compression); // compression
+			processDefinition.add("-mhe"); // encrypt headers
+			processDefinition.add("-uq0"); // update with removal
+			processDefinition.add("\"" + tmpFileRelativePath + ".7z\"");
+			processDefinition.add("\"" + srcFileRelativePath + "\"");
+			processDefinition.add("-p" + archivePass);
+			processDefinition.add("-mmt"); // multi-threading
+			processDefinition.add("-ms=off");  // non-solid archive (better update performance)
+
+			// if the work dir is not specified and no compression is used 7zip
+			// will create the file directly at given location
+			if (!"".equals(workDir)) {
+				processDefinition.add("-w" + workDir);
+			}
+
+			ProcessBuilder pb = new ProcessBuilder(processDefinition);
 			zippingResults.add(new File(tmpFileRelativePath + ".7z"));
 
 			pb.inheritIO();
