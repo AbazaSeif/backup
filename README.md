@@ -16,7 +16,7 @@ This is a very simple script written in Java that can be used for automated, com
 
 It has two modes of operation:
 
-1. Simple mode - It creates always creates the archives from scratch. No compression is used.
+1. Simple mode - It creates the archives from scratch. No compression is used. **Please be careful as the intermediate folder is always deleted at first**
 
 2. Advanced mode - It will try to update your existing archives with changes (using 7zip "u" option). Compression and custom 7zip workdir can be used.
 
@@ -30,9 +30,11 @@ Zipper and Sync can be used separately. If you do not need the "cloud" backup yo
 ## How to use it?
 - Download the .zip package from release folder in this repository.
 - Check included .bat files and fill in the source, intermediate and resulting directories.
-- If no arguments are used the help is printed:
+- If no arguments are used the help is printed.
 
+Zipper:
 ```
+Zipper: Recursive 7zip based archiving tool. Creates non-solid password protected archives. 
 Mandatory parameters: {7zipLocation} {source} {destination} {depth} {archivePass}
 
 {7zipLocation}              7zip executable (7z.exe)
@@ -46,12 +48,21 @@ Additional parameters: {reuse} {workingDir} {compression}
 {compression}:              compression: 0-9 - 0 no compression
 ```
 
+Sync:
+```
+Sync: One purpose file-size-based synchronization tool. 
+Sync ignores timestamps rather using file size as the only parameter. 
+If your data can change without changing the actual file sizes this tool is not for  you.
+params: {source} {destination}
+```
 The Backup.jar contains two main classes:
 - java -cp Backup.jar cz.jkosnar.backup.zip.Zipper
 - java -cp Backup.jar cz.jkosnar.backup.sync.Sync
 
 ## Future plans?
-There are situation where the Sync tool can miss important changes because the file-size of archive did not change. This should be improved.
+ - There are situation where the Sync tool can miss important changes because the file-size of archive did not change. This should be improved.
+ - GUI
+ - Direct synchronization to the cloud.
 
 ## Use it at your own risk.
 This is a very simple tool I use for my personal non-critical backups. I cannot guarantee it will work for you. Please check the backup files very carefully during the backups. Currently there are only "alpha" releases.
