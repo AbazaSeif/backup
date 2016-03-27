@@ -29,10 +29,10 @@ public class Zipper {
 			System.out.println("{7zipLocation}              7zip executable (7z.exe)");
 			System.out.println("{source} & {destination}:   source and destination folders");
 			System.out.println("{depth}:                    folder tree recursing depth - folders lower than {depth} will be merged into one archive");
-			System.out.println("{archivePass}:              password for the resulting archives - archives will be repacked with a new password ");
+			System.out.println("{archivePass}:              password for the resulting archives");
 			System.out.println();
 			System.out.println("Additional parameters: {reuse} {workingDir} {compression} ");
-			System.out.println("{reuse}:                    update the desination folder - archives will be synchronized (true/false)");
+			System.out.println("{reuse}:                    update the destination folder - archives will be synchronized (true/false)");
 			System.out.println("{workingDir}:               temporary directory location");
 			System.out.println("{compression}:              compression: 0-9 - 0 no compression");
 			System.out.println();
