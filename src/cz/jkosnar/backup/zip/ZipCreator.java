@@ -44,11 +44,15 @@ public class ZipCreator {
 		List<File> zippingResults = zip(sevenZipLocation, source, destination, zippingDepth, archivePass, workingDir, compression);
 
 		if (reuse) {
-			SyncTools.deleteUnlistedFiles(zippingResults, destination);
+			List<String> deletedFiles = SyncTools.deleteUnlistedFiles(zippingResults, destination);
+			for (String s : deletedFiles) {
+				System.out.println("Deleting removed file ... " + s);
+			}
 		}
 
 		// store the "timestamp" file of the last sync
 		FileUtils.touch(new File(destination, TIMESTAMP_STORAGE_FILE));
+		System.out.println("Created new timestamp file ... " + TIMESTAMP_STORAGE_FILE);
 
 		// show some statistics about zipping
 		long millis = System.currentTimeMillis() - millisStart;
@@ -86,7 +90,7 @@ public class ZipCreator {
 			String relativePath = f.getAbsolutePath().substring(sourcePathLength);
 			String srcFileRelativePath = source.getAbsolutePath() + relativePath;
 			String tmpFileRelativePath = destination.getAbsolutePath() + relativePath;
-			
+
 			long toZipModificaitonTimestamp = SyncTools.getModificationTimestampOfSubtree(f);
 			if (toZipModificaitonTimestamp >= lastBackupTimestamp) {
 				List<String> processDefinition = new ArrayList<String>();
