@@ -3,50 +3,64 @@ Simple sync and backup tool I use for encrypted cloud backups.
 
 ## Prerequisites
 This tool needs:
-- Java 1.7 and higher
-- 7zip - version 9.20
-- (optional) Cloud sync software (such as Google Drive for desktop)
+* Java 1.7 and higher
+* 7zip - version 9.20
+* (optional) Cloud sync software (such as Google Drive for desktop)
 
 ## What it does?
-This is a very simple script written in Java that can be used for automated, compressed and encrypted (cloud) backup. It works in a following way:
+"Zipper" is a very simple script (command line tool) written in Java that can be used for automated, compressed and encrypted (cloud) backup.
 
-1. (Zipper) Recursively "7zips" your source directory - It traverses your files to a given depth and creates a separate archive for each branch with all sub-directories included.
-
-2. (Sync) It propagates changed archives to a "result" folder (your Cloud provider synchronized drive). - **It will push only files that differ by file-size**. (Time-stamps currently cannot be used as they change during archive creation / update). In general it works like this: "delete missing stuff", "copy new stuff" and "overwrite differently sized files".
-
-It has two modes of operation:
-
-1. Simple mode - It creates the archives from scratch. No compression is used. **Please be careful as the intermediate folder is always deleted at first**
-
-2. Advanced mode - It will try to update your existing archives with changes (using 7zip "u" option). Compression and custom 7zip workdir can be used.
-
-Notice:
-- **If your source data change often without changing their actual file-size this tool is not for you.**
-- See "Issues" tab for currently known issues. (For example the password change may not be updated correctly by Sync tool as it will not change the file-size, etc.)
+1. Zipper recursively "7zips" your source directory. It traverses the files to a given depth and creates a separate archive for each branch with all sub-directories included.
+2. Resulting files are created in a selected output directory. It can be, for example, your Google Drive local folder.
+3. If "sync" parameter is used, it will only update changed files next time it is run at the same set of directories.
 
 ## No cloud?
-Zipper and Sync can be used separately. If you do not need the "cloud" backup you can just use the "Zipper" tool to keep encrypted backup of your files in a local or network filesystem.
+If you do not need the "cloud" backup you can just use the "Zipper" tool to keep encrypted backup of your files in a local or network filesystem.
 
+## Use it at your own risk.
+This is a very simple tool I use for my personal non-critical backups. I cannot guarantee it will work for you. Please check the backup files very carefully during the backups.
+
+## How to build it?
+Currently you are asked to build the .jar yourself:
+* "cz.jkosnar.backup.zip.Zipper" is the Main class. 
+* Easiest way is to Extract required libraries to the resulting .jar.
+	
 ## How to use it?
-- Download the .zip package from release folder in this repository.
-- Check included .bat files and fill in the source, intermediate and resulting directories.
-- If no arguments are used the help is printed.
+* If the program is run with no arguments, the help is printed:
 
 Zipper:
 ```
 Zipper: Recursive 7zip based archiving tool. Creates non-solid password protected archives. 
-Mandatory parameters: {7zipLocation} {source} {destination} {depth} {archivePass}
+Parameters: {7zipLocation} {source} {destination} {depth} {archivePass} {synchronize} {workingDir} {compression}
 
 {7zipLocation}              7zip executable (7z.exe)
 {source} & {destination}:   source and destination folders
 {depth}:                    folder tree recursing depth - folders lower than {depth} will be merged into one archive
 {archivePass}:              password for the resulting archives
-
-Additional parameters: {reuse} {workingDir} {compression} 
-{reuse}:                    update the destination folder - archives will be synchronized (true/false)
-{workingDir}:               temporary directory location
+{synchronize}:              true - update existing destination, false - delete destination first
+{workingDir}:               7zip temporary directory location
 {compression}:              compression: 0-9 - 0 no compression
+
+All parameters must by specified in the given order.
 ```
+
+You can prepare a batch script for your backup, such as:
+
+```
+set /p PASS= Enter Password: 
+java -cp Backup.jar cz.jkosnar.backup.zip.Zipper "C:\Program Files\7-Zip\7z.exe" "-SOURCE-" "-DESTINATION-" 4 %PASS% true "C:\Temp\DriveDuplicateTemp" 9
+timeout 500
+```
+
+## Advanced Modes?
+The Backup project actually contains two main classes:
+* java -cp Backup.jar cz.jkosnar.backup.zip.Zipper
+* java -cp Backup.jar cz.jkosnar.backup.sync.Sync
+
+This allows you to use "non-timestmap" based backup approach. In this case you have to:
+* Turn off the reuse parameter in Zipper. (It will therefore always start from scratch)
+* SetZzipper destination to same intermediate folder.
+* Use "Sync" tool to synchronize to your final folder based on file-sizes.
 
 Sync:
 ```
@@ -55,16 +69,8 @@ Sync ignores timestamps rather using file size as the only parameter.
 If your data can change without changing the actual file sizes this tool is not for  you.
 params: {source} {destination}
 ```
-The Backup.jar contains two main classes:
-- java -cp Backup.jar cz.jkosnar.backup.zip.Zipper
-- java -cp Backup.jar cz.jkosnar.backup.sync.Sync
 
-## Future plans?
- - There are situation where the Sync tool can miss important changes because the file-size of archive did not change. This should be improved.
- - GUI
- - Direct synchronization to the cloud.
 
-## Use it at your own risk.
-This is a very simple tool I use for my personal non-critical backups. I cannot guarantee it will work for you. Please check the backup files very carefully during the backups. Currently there are only "alpha" releases.
+
 
 

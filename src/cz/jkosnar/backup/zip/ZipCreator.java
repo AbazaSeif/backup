@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
-import cz.jkosnar.backup.sync.SyncTools;
+import cz.jkosnar.backup.common.BackupTools;
 
 /**
  * Processes the zip archives creation. Recursively searches the source directory tree up to given depth. For every directory or file found creates password
@@ -24,27 +24,27 @@ public class ZipCreator {
 	 * @param sevenZipLocation
 	 * @param source
 	 * @param destination
-	 * @param reuse
+	 * @param synchronize
 	 * @param zippingDepth
 	 * @param archivePass
 	 * @throws Exception
 	 */
-	public void createZip(String sevenZipLocation, File source, File destination, int zippingDepth, String archivePass, boolean reuse, String workingDir,
+	public void createZip(String sevenZipLocation, File source, File destination, int zippingDepth, String archivePass, boolean synchronize, String workingDir,
 			int compression) throws Exception {
 		long millisStart = System.currentTimeMillis();
 
 		System.out.println(
 				"Zipping started...\nSource: " + source.getAbsolutePath() + "\nDestination: " + destination.getAbsolutePath() + "\nDepth: " + zippingDepth);
 
-		if (!reuse) {
+		if (!synchronize) {
 			FileUtils.deleteDirectory(destination);
 			FileUtils.forceMkdir(destination);
 		}
 
 		List<File> zippingResults = zip(sevenZipLocation, source, destination, zippingDepth, archivePass, workingDir, compression);
 
-		if (reuse) {
-			List<String> deletedFiles = SyncTools.deleteUnlistedFiles(zippingResults, destination);
+		if (synchronize) {
+			List<String> deletedFiles = BackupTools.deleteUnlistedFiles(zippingResults, destination);
 			for (String s : deletedFiles) {
 				System.out.println("Deleting removed file ... " + s);
 			}
@@ -83,7 +83,7 @@ public class ZipCreator {
 		recursivelyFillZipLocations(source, 0, zippingDepth);
 
 		int sourcePathLength = source.getAbsolutePath().length();
-		long lastBackupTimestamp = SyncTools.getModificationTimestampOfSubtree(new File(destination, TIMESTAMP_STORAGE_FILE));
+		long lastBackupTimestamp = BackupTools.getModificationTimestampOfSubtree(new File(destination, TIMESTAMP_STORAGE_FILE));
 
 		for (File f : toZip) {
 
@@ -91,7 +91,7 @@ public class ZipCreator {
 			String srcFileRelativePath = source.getAbsolutePath() + relativePath;
 			String tmpFileRelativePath = destination.getAbsolutePath() + relativePath;
 
-			long toZipModificaitonTimestamp = SyncTools.getModificationTimestampOfSubtree(f);
+			long toZipModificaitonTimestamp = BackupTools.getModificationTimestampOfSubtree(f);
 			if (toZipModificaitonTimestamp >= lastBackupTimestamp) {
 				List<String> processDefinition = new ArrayList<String>();
 				processDefinition.add(sevenZipLocation);

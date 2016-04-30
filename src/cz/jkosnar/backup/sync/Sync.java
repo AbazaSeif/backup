@@ -26,7 +26,7 @@ public class Sync {
 
 		if (args.length != 2) {
 			System.out.println(
-					"Sync: One purpose file-size-based synchronization tool. Sync ignores timestamps rather using file size as the only parameter. If your data can change without changing the actual file sizes this tool is not for  you.");
+					"Sync: One purpose file-size-based synchronization tool. Sync ignores timestamps rather using file size as the only parameter. If your data can change without changing the actual file sizes this tool is not for you.");
 			System.out.println("params: {source} {destination}");
 			return;
 		}

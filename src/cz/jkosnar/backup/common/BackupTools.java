@@ -1,4 +1,4 @@
-package cz.jkosnar.backup.sync;
+package cz.jkosnar.backup.common;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import org.apache.commons.io.filefilter.TrueFileFilter;
 /**
  * Utility class for operations with local files and directories.
  */
-public class SyncTools {
+public class BackupTools {
 
 	/**
 	 * Deletes files from "dst" if they are not in a "validFiles" list. <br/>
