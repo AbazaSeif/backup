@@ -26,9 +26,8 @@ Currently you are asked to build the .jar yourself:
 * Easiest way is to Extract required libraries to the resulting .jar.
 	
 ## How to use it?
-* If the program is run with no arguments, the help is printed:
+If the program is run with no arguments, the help is printed:
 
-Zipper:
 ```
 Zipper: Recursive 7zip based archiving tool. Creates non-solid password protected archives. 
 Parameters: {7zipLocation} {source} {destination} {depth} {archivePass} {synchronize} {workingDir} {compression}
@@ -58,9 +57,9 @@ The Backup project actually contains two main classes:
 * java -cp Backup.jar cz.jkosnar.backup.sync.Sync
 
 This allows you to use "non-timestmap" based backup approach. In this case you have to:
-* Turn off the reuse parameter in Zipper. (It will therefore always start from scratch)
-* SetZzipper destination to same intermediate folder.
-* Use "Sync" tool to synchronize to your final folder based on file-sizes.
+* Turn off the synchronize parameter in Zipper. (It will therefore always start from scratch.)
+* Set Zzipper destination to same intermediate folder.
+* Use "Sync" tool to synchronize the "intermediate folder" to your "final folder" based on file-sizes only.
 
 Sync:
 ```
