@@ -9,9 +9,8 @@ import org.apache.commons.io.FileUtils;
 import cz.jkosnar.backup.sync.SyncTools;
 
 /**
- * Processes the zip archives creation. Recursively searches the source
- * directory tree up to given depth. For every directory or file found creates
- * password protected non-solid archive in a given location.
+ * Processes the zip archives creation. Recursively searches the source directory tree up to given depth. For every directory or file found creates password
+ * protected non-solid archive in a given location.
  */
 public class ZipCreator {
 
@@ -20,8 +19,7 @@ public class ZipCreator {
 	private List<File> toZip;
 
 	/**
-	 * Creates the archives with additional system.out messages and possibility
-	 * to handle the "reuse" parameter.
+	 * Creates the archives with additional system.out messages and possibility to handle the "reuse" parameter.
 	 * 
 	 * @param sevenZipLocation
 	 * @param source
@@ -85,14 +83,12 @@ public class ZipCreator {
 
 		for (File f : toZip) {
 
+			String relativePath = f.getAbsolutePath().substring(sourcePathLength);
+			String srcFileRelativePath = source.getAbsolutePath() + relativePath;
+			String tmpFileRelativePath = destination.getAbsolutePath() + relativePath;
+			
 			long toZipModificaitonTimestamp = SyncTools.getModificationTimestampOfSubtree(f);
-
 			if (toZipModificaitonTimestamp >= lastBackupTimestamp) {
-
-				String relativePath = f.getAbsolutePath().substring(sourcePathLength);
-				String srcFileRelativePath = source.getAbsolutePath() + relativePath;
-				String tmpFileRelativePath = destination.getAbsolutePath() + relativePath;
-
 				List<String> processDefinition = new ArrayList<String>();
 				processDefinition.add(sevenZipLocation);
 				processDefinition.add("u"); // update mode
@@ -103,18 +99,15 @@ public class ZipCreator {
 				processDefinition.add("\"" + srcFileRelativePath + "\"");
 				processDefinition.add("-p" + archivePass);
 				processDefinition.add("-mmt"); // multi-threading
-				processDefinition.add("-ms=off"); // non-solid archive (better
-													// update performance)
+				processDefinition.add("-ms=off"); // non-solid archive (better update performance)
 
-				// if the work dir is not specified and no compression is used
-				// 7zip
+				// if the work dir is not specified and no compression is used 7zip
 				// will create the file directly at given location
 				if (!"".equals(workDir)) {
 					processDefinition.add("-w" + workDir);
 				}
 
 				ProcessBuilder pb = new ProcessBuilder(processDefinition);
-				zippingResults.add(new File(tmpFileRelativePath + ".7z"));
 
 				pb.inheritIO();
 				Process p = pb.start();
@@ -122,8 +115,9 @@ public class ZipCreator {
 				p.destroy();
 
 			} else {
-				System.out.println("Skipping unchanged file ... " + f.getAbsolutePath());
+				System.out.println("Skipping unchanged file ... " + tmpFileRelativePath + ".7z");
 			}
+			zippingResults.add(new File(tmpFileRelativePath + ".7z"));
 		}
 
 		return zippingResults;
