@@ -15,6 +15,8 @@ import cz.jkosnar.backup.sync.SyncTools;
  */
 public class ZipCreator {
 
+	private static final String TIMESTAMP_STORAGE_FILE = ".sync";
+
 	private List<File> toZip;
 
 	/**
@@ -47,6 +49,9 @@ public class ZipCreator {
 			SyncTools.deleteUnlistedFiles(zippingResults, destination);
 		}
 
+		// store the "timestamp" file of the last sync
+		FileUtils.touch(new File(destination, TIMESTAMP_STORAGE_FILE));
+
 		// show some statistics about zipping
 		long millis = System.currentTimeMillis() - millisStart;
 		long second = (millis / 1000) % 60;
@@ -71,42 +76,54 @@ public class ZipCreator {
 	public List<File> zip(String sevenZipLocation, File source, File destination, int zippingDepth, String archivePass, String workDir, int compression)
 			throws Exception {
 		List<File> zippingResults = new ArrayList<>();
-		toZip = new ArrayList<>();
 
+		toZip = new ArrayList<>();
 		recursivelyFillZipLocations(source, 0, zippingDepth);
 
 		int sourcePathLength = source.getAbsolutePath().length();
+		long lastBackupTimestamp = SyncTools.getModificationTimestampOfSubtree(new File(destination, TIMESTAMP_STORAGE_FILE));
+
 		for (File f : toZip) {
 
-			String relativePath = f.getAbsolutePath().substring(sourcePathLength);
-			String srcFileRelativePath = source.getAbsolutePath() + relativePath;
-			String tmpFileRelativePath = destination.getAbsolutePath() + relativePath;
+			long toZipModificaitonTimestamp = SyncTools.getModificationTimestampOfSubtree(f);
 
-			List<String> processDefinition = new ArrayList<String>();
-			processDefinition.add(sevenZipLocation);
-			processDefinition.add("u"); // update mode
-			processDefinition.add("-mx" + compression); // compression
-			processDefinition.add("-mhe"); // encrypt headers
-			processDefinition.add("-uq0"); // update with removal
-			processDefinition.add("\"" + tmpFileRelativePath + ".7z\"");
-			processDefinition.add("\"" + srcFileRelativePath + "\"");
-			processDefinition.add("-p" + archivePass);
-			processDefinition.add("-mmt"); // multi-threading
-			processDefinition.add("-ms=off");  // non-solid archive (better update performance)
+			if (toZipModificaitonTimestamp >= lastBackupTimestamp) {
 
-			// if the work dir is not specified and no compression is used 7zip
-			// will create the file directly at given location
-			if (!"".equals(workDir)) {
-				processDefinition.add("-w" + workDir);
+				String relativePath = f.getAbsolutePath().substring(sourcePathLength);
+				String srcFileRelativePath = source.getAbsolutePath() + relativePath;
+				String tmpFileRelativePath = destination.getAbsolutePath() + relativePath;
+
+				List<String> processDefinition = new ArrayList<String>();
+				processDefinition.add(sevenZipLocation);
+				processDefinition.add("u"); // update mode
+				processDefinition.add("-mx" + compression); // compression
+				processDefinition.add("-mhe"); // encrypt headers
+				processDefinition.add("-uq0"); // update with removal
+				processDefinition.add("\"" + tmpFileRelativePath + ".7z\"");
+				processDefinition.add("\"" + srcFileRelativePath + "\"");
+				processDefinition.add("-p" + archivePass);
+				processDefinition.add("-mmt"); // multi-threading
+				processDefinition.add("-ms=off"); // non-solid archive (better
+													// update performance)
+
+				// if the work dir is not specified and no compression is used
+				// 7zip
+				// will create the file directly at given location
+				if (!"".equals(workDir)) {
+					processDefinition.add("-w" + workDir);
+				}
+
+				ProcessBuilder pb = new ProcessBuilder(processDefinition);
+				zippingResults.add(new File(tmpFileRelativePath + ".7z"));
+
+				pb.inheritIO();
+				Process p = pb.start();
+				p.waitFor();
+				p.destroy();
+
+			} else {
+				System.out.println("Skipping unchanged file ... " + f.getAbsolutePath());
 			}
-
-			ProcessBuilder pb = new ProcessBuilder(processDefinition);
-			zippingResults.add(new File(tmpFileRelativePath + ".7z"));
-
-			pb.inheritIO();
-			Process p = pb.start();
-			p.waitFor();
-			p.destroy();
 		}
 
 		return zippingResults;

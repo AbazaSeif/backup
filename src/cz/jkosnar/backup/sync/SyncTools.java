@@ -135,4 +135,29 @@ public class SyncTools {
 		return result;
 	}
 
+	/**
+	 * Returns latest modification timestamp of a file or a directory subtree.
+	 * 
+	 * @param src
+	 * @return 0 or timestamp
+	 */
+	public static long getModificationTimestampOfSubtree(File src) {
+		long result = 0;
+
+		if (src.isFile()) {
+			result = src.lastModified();
+		} else if (src.isDirectory()) {
+
+			for (File f : FileUtils.listFilesAndDirs(src, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
+				long current = f.lastModified();
+				if (result < current) {
+					result = current;
+				}
+			}
+
+		}
+
+		return result;
+	}
+
 }
